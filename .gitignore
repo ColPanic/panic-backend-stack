@@ -1,0 +1,51 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Backup files
+backups/
+*.sql
+*.dump
+
+# Log files
+logs/
+*.log
+
+# Docker volumes (if using local volumes)
+data/
+postgres_data/
+redis_data/
+chromadb_data/
+minio_data/
+
+# SSL certificates (add to separate secure repo)
+ssl/
+*.pem
+*.key
+*.crt
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Auth files with real credentials
+auth/credentials.prod
+auth/*.secret
