@@ -8,7 +8,7 @@
 
 > **Complete backend infrastructure for AI applications in a single Docker Compose stack**
 
-A production-ready, open-source backend services stack designed specifically for AI applications. Provides PostgreSQL with vector extensions, Redis caching, ChromaDB for embeddings, and MinIO object storage - everything you need to build scalable AI applications.
+A production-ready, open-source backend services stack designed specifically for AI applications. Provides PostgreSQL with vector extensions, Redis caching, ChromaDB for embeddings, MinIO object storage, and RabbitMQ message queue - everything you need to build scalable AI applications.
 
 ## 🚀 Quick Start
 
@@ -37,6 +37,7 @@ make health
 | **Redis** | Cache & Sessions | 6379 | In-memory data store for caching and session management |
 | **ChromaDB** | Vector Database | 8000 | Specialized vector database for embeddings and similarity search |
 | **MinIO** | Object Storage | 9000/9001 | S3-compatible object storage for files and documents |
+| **RabbitMQ** | Message Queue | 5672/15672 | AMQP message broker for event-driven architecture and notifications |
 | **Nginx** | Reverse Proxy | 80/443 | Optional reverse proxy for service routing |
 
 ## 🏗️ Architecture
@@ -50,10 +51,10 @@ make health
 │  │   +Vector   │  │   Cache     │  │  Embeddings │    │
 │  └─────────────┘  └─────────────┘  └─────────────┘    │
 │                                                         │
-│  ┌─────────────┐  ┌─────────────┐                     │
-│  │    MinIO    │  │    Nginx    │                     │
-│  │  S3 Storage │  │   Proxy     │                     │
-│  └─────────────┘  └─────────────┘                     │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
+│  │    MinIO    │  │  RabbitMQ   │  │    Nginx    │    │
+│  │  S3 Storage │  │ Message Q   │  │   Proxy     │    │
+│  └─────────────┘  └─────────────┘  └─────────────┘    │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -66,6 +67,7 @@ import asyncpg
 import redis
 import chromadb
 from minio import Minio
+import pika
 
 # PostgreSQL with vector support
 conn = await asyncpg.connect(
@@ -88,6 +90,12 @@ minio_client = Minio(
     secret_key="ai_minio_password",
     secure=False
 )
+
+# RabbitMQ for message queuing
+rabbitmq_connection = pika.BlockingConnection(
+    pika.ConnectionParameters('localhost', 5672, '/', 
+                             pika.PlainCredentials('guest', 'guest'))
+)
 ```
 
 ### Node.js Application Integration
@@ -97,6 +105,7 @@ import { Client } from 'pg';
 import Redis from 'redis';
 import { ChromaApi } from 'chromadb';
 import * as Minio from 'minio';
+import amqp from 'amqplib';
 
 // PostgreSQL connection
 const pgClient = new Client({
@@ -121,6 +130,9 @@ const minioClient = new Minio.Client({
   accessKey: 'ai_admin',
   secretKey: 'ai_minio_password'
 });
+
+// RabbitMQ connection
+const rabbitmqConnection = await amqp.connect('amqp://guest:guest@localhost:5672');
 ```
 
 ## 🔧 Commands

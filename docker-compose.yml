@@ -126,6 +126,38 @@ services:
           memory: 256M
           cpus: '0.25'
 
+  # RabbitMQ Message Queue for MinIO notifications and event handling
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ai-rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./docker/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    ports:
+      - "${RABBITMQ_AMQP_PORT:-5672}:5672"    # AMQP port
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"  # Management UI port
+    networks:
+      - ai-backend
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
   # Nginx reverse proxy for backend services (optional)
   nginx:
     image: nginx:alpine
@@ -157,6 +189,8 @@ volumes:
   chromadb_data:
     driver: local
   minio_data:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:

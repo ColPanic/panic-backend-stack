@@ -24,6 +24,8 @@ help: ## Show this help
 	@echo "  ChromaDB:       http://localhost:8000"
 	@echo "  MinIO API:      http://localhost:9000"
 	@echo "  MinIO Console:  http://localhost:9001"
+	@echo "  RabbitMQ AMQP:  localhost:5672"
+	@echo "  RabbitMQ Mgmt:  http://localhost:15672"
 	@echo "  Health Check:   http://localhost/health"
 
 setup: ## First-time setup - create .env file and directories
@@ -70,7 +72,7 @@ status: ## Show service status and resource usage
 	@echo ""
 	@echo "💾 Resource usage:"
 	@docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" \
-		ai-postgres ai-redis ai-chromadb ai-minio ai-nginx 2>/dev/null || echo "Some containers not running"
+		ai-postgres ai-redis ai-chromadb ai-minio ai-rabbitmq ai-nginx 2>/dev/null || echo "Some containers not running"
 
 health: ## Check health of all services
 	@echo "🏥 Checking AI Backend Services health..."
@@ -82,6 +84,8 @@ health: ## Check health of all services
 	@curl -f -s http://localhost:${CHROMA_PORT:-8000}/api/v1/heartbeat > /dev/null 2>&1 && echo "   ✅ Ready" || echo "   ❌ Not ready"
 	@echo "📦 MinIO:"
 	@curl -f -s http://localhost:${MINIO_API_PORT:-9000}/minio/health/live > /dev/null 2>&1 && echo "   ✅ Ready" || echo "   ❌ Not ready"
+	@echo "🐰 RabbitMQ:"
+	@docker exec ai-rabbitmq rabbitmq-diagnostics ping 2>/dev/null && echo "   ✅ Ready" || echo "   ❌ Not ready"
 	@echo "🌐 Nginx:"
 	@curl -f -s http://localhost:${NGINX_HTTP_PORT:-80}/health > /dev/null 2>&1 && echo "   ✅ Ready" || echo "   ❌ Not ready"
 
@@ -104,6 +108,10 @@ logs-chromadb: ## View ChromaDB logs
 logs-minio: ## View MinIO logs
 	@echo "📦 MinIO logs:"
 	$(COMPOSE_CMD) logs --tail=50 minio
+
+logs-rabbitmq: ## View RabbitMQ logs
+	@echo "🐰 RabbitMQ logs:"
+	$(COMPOSE_CMD) logs --tail=50 rabbitmq
 
 shell-db: ## Open PostgreSQL shell
 	@echo "🐘 Opening PostgreSQL shell..."
