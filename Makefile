@@ -11,7 +11,7 @@ endif
 COMPOSE_FILE := docker-compose.yml
 COMPOSE_CMD := docker compose -f $(COMPOSE_FILE)
 
-.PHONY: help setup up down restart status health logs shell-db shell-redis backup restore clean
+.PHONY: help setup up down restart status health logs shell-db shell-redis backup restore clean reset-data
 
 help: ## Show this help
 	@echo "AI Backend Services Stack - Available Commands:"
@@ -124,7 +124,7 @@ shell-redis: ## Open Redis CLI
 backup: ## Backup PostgreSQL database
 	@echo "💾 Creating database backup..."
 	@mkdir -p backups
-	docker exec ai-postgres pg_dump -U ${POSTGRES_USER:-ai_user} -d ${POSTGRES_DB:-ai_app} > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
+	docker exec ai-postgres pg_dump -U $${POSTGRES_USER:-ai_user} -d $${POSTGRES_DB:-ai_app} > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "✅ Database backup created in backups/"
 
 restore: ## Restore PostgreSQL database from backup (usage: make restore BACKUP=backups/backup_YYYYMMDD_HHMMSS.sql)
@@ -141,6 +141,30 @@ clean: ## Remove stopped containers and unused volumes
 	$(COMPOSE_CMD) down --remove-orphans
 	docker system prune -f --volumes
 	@echo "✅ Cleanup completed"
+
+reset-data: ## Reset all data while preserving credentials
+	@echo "🗑️  Resetting all service data..."
+	@echo "⚠️  This will delete ALL data but preserve credentials!"
+	@echo "   - PostgreSQL: All databases and tables"
+	@echo "   - Redis: All cached data"
+	@echo "   - ChromaDB: All collections and embeddings"
+	@echo "   - MinIO: All buckets and objects"
+	@echo "   - RabbitMQ: All queues and messages"
+	@echo ""
+	@read -p "Are you sure you want to continue? [y/N]: " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		$(COMPOSE_CMD) down; \
+		docker volume rm ai-backend-stack_postgres_data 2>/dev/null || true; \
+		docker volume rm ai-backend-stack_redis_data 2>/dev/null || true; \
+		docker volume rm ai-backend-stack_chromadb_data 2>/dev/null || true; \
+		docker volume rm ai-backend-stack_minio_data 2>/dev/null || true; \
+		docker volume rm ai-backend-stack_rabbitmq_data 2>/dev/null || true; \
+		$(COMPOSE_CMD) up -d; \
+		echo "✅ All service data has been reset"; \
+		echo "🔑 Credentials remain unchanged"; \
+	else \
+		echo "❌ Operation cancelled"; \
+	fi
 
 reset-minio: ## Reset MinIO credentials (fixes login issues)
 	@echo "🔄 Resetting MinIO credentials..."

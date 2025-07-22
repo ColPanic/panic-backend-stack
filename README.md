@@ -161,9 +161,19 @@ make logs-minio     # MinIO logs only
 ```bash
 make shell-db       # Open PostgreSQL shell
 make shell-redis    # Open Redis CLI
-make backup         # Create database backup
-make restore BACKUP=file.sql  # Restore from backup
 ```
+
+### Data Management
+```bash
+make backup         # Create PostgreSQL database backup
+make restore BACKUP=file.sql  # Restore from backup
+make reset-data     # Reset all data while preserving credentials
+```
+
+**Reset Data Command**: Safely removes all data from PostgreSQL, Redis, ChromaDB, MinIO, and RabbitMQ while preserving:
+- All passwords and credentials from `.env` file
+- ChromaDB authentication configuration in `./auth/`
+- Docker container and network configurations
 
 ### Maintenance
 ```bash
