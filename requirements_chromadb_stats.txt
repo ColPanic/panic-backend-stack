@@ -1,0 +1,4 @@
+# ChromaDB Statistics Script Dependencies
+chromadb>=0.4.0
+numpy>=1.20.0
+requests>=2.25.0 
