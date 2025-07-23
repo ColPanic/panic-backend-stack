@@ -16,7 +16,7 @@ COMPOSE_CMD := docker compose -f $(COMPOSE_FILE)
 help: ## Show this help
 	@echo "AI Backend Services Stack - Available Commands:"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk -F ':.*?## ' '{printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*## .*$$' Makefile | sort | sed -E 's/^([a-zA-Z_-]+):.*## (.*)$$/\1:\2/' | awk -F: '{printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Service URLs (after starting):"
 	@echo "  PostgreSQL:     localhost:5432"
